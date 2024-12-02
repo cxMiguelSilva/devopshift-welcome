@@ -1,79 +1,40 @@
 version: 2.1
 
-parameters:
-  circleci-101:
-    type: string
-    default: "current"
-  workingdir:
-    type: string
-    default: "code/nexus-lab/circleci-101"
-
-
 orbs:
-  maven: circleci/maven@2.0.0  # Maven orb for building and testing Java projects
+  slack: circleci/slack@4.9.3
 
 jobs:
   build:
     docker:
-      - image: cimg/openjdk:11.0  # Java build environment
+      - image: cimg/base:current
     steps:
       - checkout
       - run:
-          name: Build the Project
-          command: cd << pipeline.parameters.workingdir >> && mvn clean package spring-boot:repackage
+          name: Mock build step
+          command: |
+            echo "Starting the mock build..."
+            sleep 10
+            echo "Build Complete."
+      - slack/notify:
+          event: pass
+          template: basic_success_1
+          custom: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdown",
+                    "text": "*Mock Build Completed Successfully - Miguel Silva*"
+                  }
+                }
+              ]
+            }
 
-  lint:
-    docker:
-      - image: cimg/openjdk:11.0
-    steps:
-      - checkout
-      - run:
-          name: Lint the Code
-          command: cd << pipeline.parameters.workingdir >> && mvn checkstyle:check
 
-  unit_test:
-    docker:
-      - image: cimg/openjdk:11.0
-    steps:
-      - checkout
-      - run:
-          name: Run Unit Tests
-          command: cd << pipeline.parameters.workingdir >> && mvn test
-
-
-  deploy_mock:
-    docker:
-      - image: cimg/openjdk:11.0
-    steps:
-      - run:
-          name: Mock Deployment
-          command: echo "Deployment complete for TAG << pipeline.parameters.circleci-101 >>"
 
 workflows:
   version: 2
-  build_and_deploy:
+  simple-build-notify:
     jobs:
-      - build
-      - lint:
-          requires:
-            - build
-      - unit_test: # using docker executor for running unit tests
-          requires:
-            - build
-      - maven/test: # using maven orb for running unit tests 
-          executor: 
-            name: maven/default
-            tag: '17.0'
-          maven_command: mvn
-          command: test 
-          settings_file: settings.xml
-          verify_dependencies: false
-          app_src_directory: .<< pipeline.parameters.workingdir >>
-          test_results_path: ./target/surefire-reports
-          requires:
-            - build
-      - deploy_mock:
-          requires:
-            - lint
-            - unit_test
-      
+      - build:
