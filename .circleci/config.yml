@@ -24,12 +24,12 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Mock Build Completed Successfully [please write your name]*"
+                    "text": "*Mock Build Completed Successfully - Miguel Silva*"
                   }
                 }
               ]
             }
-            
+
 workflows:
   version: 2
   simple-build-notify:
