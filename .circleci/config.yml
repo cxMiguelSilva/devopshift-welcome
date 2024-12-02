@@ -39,3 +39,6 @@ workflows:
  simple-build-notify:
    jobs:
      - build:
+      context:
+       - Workshop
+
