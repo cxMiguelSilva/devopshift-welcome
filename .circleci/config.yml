@@ -1,5 +1,14 @@
 version: 2.1
 
+parameters:
+  circleci-101:
+    type: string
+    default: "current"
+  workingdir:
+    type: string
+    default: "code/nexus-lab/circleci-101"
+
+
 orbs:
   maven: circleci/maven@2.0.0  # Maven orb for building and testing Java projects
 
@@ -11,7 +20,7 @@ jobs:
       - checkout
       - run:
           name: Build the Project
-          command: cd code/nexus-lab/circleci-101 && mvn clean package spring-boot:repackage
+          command: cd << pipeline.parameters.workingdir >> && mvn clean package spring-boot:repackage
 
   lint:
     docker:
@@ -20,7 +29,7 @@ jobs:
       - checkout
       - run:
           name: Lint the Code
-          command: cd code/nexus-lab/circleci-101 && mvn checkstyle:check
+          command: cd << pipeline.parameters.workingdir >> && mvn checkstyle:check
 
   unit_test:
     docker:
@@ -29,7 +38,7 @@ jobs:
       - checkout
       - run:
           name: Run Unit Tests
-          command: cd code/nexus-lab/circleci-101 && mvn test
+          command: cd << pipeline.parameters.workingdir >> && mvn test
 
 
   deploy_mock:
@@ -38,7 +47,7 @@ jobs:
     steps:
       - run:
           name: Mock Deployment
-          command: echo "Deployment complete."
+          command: echo "Deployment complete for TAG << pipeline.parameters.circleci-101 >>"
 
 workflows:
   version: 2
@@ -59,7 +68,7 @@ workflows:
           command: test 
           settings_file: settings.xml
           verify_dependencies: false
-          app_src_directory: ./code/nexus-lab/circleci-101
+          app_src_directory: .<< pipeline.parameters.workingdir >>
           test_results_path: ./target/surefire-reports
           requires:
             - build
